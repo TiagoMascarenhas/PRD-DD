@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if processo else 'Novo' }} Processo — Diárias{% endblock %}
+{% block content %}
+
+{% set p = processo %}
+{% set readonly = (p and p.status != 'rascunho' and current_user.perfil == 'preenchedor') %}
+
+<div class="steps no-print" style="display:flex;margin-bottom:20px;border:1px solid #ccc;border-radius:6px;overflow:hidden;background:#fff">
+  <div class="step active" id="tab1" onclick="showTab(1)" style="flex:1;padding:10px 16px;font-size:13px;cursor:pointer;background:#f5f7fa;color:#555;text-align:center;border-right:1px solid #ddd">Anexo I — Requisição</div>
+  <div class="step" id="tab2" onclick="showTab(2)" style="flex:1;padding:10px 16px;font-size:13px;cursor:pointer;background:#f5f7fa;color:#555;text-align:center">Anexo II — Prestação de Contas</div>
+</div>
+
+<form method="POST">
+
+<!-- ===== ANEXO I ===== -->
+<div id="anexo1">
+
+<div class="card">
+  <div class="card-header">Identificação do Formulário</div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="field"><label>Formulário Nº</label>
+        <input type="text" name="num_form" value="{{ num_form }}" readonly class="ro"></div>
+      <div class="field"><label>Data de Emissão</label>
+        <input type="date" name="data_emissao" value="{{ p.data_emissao if p else hoje }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>Status</label>
+        <select name="status_form" {{ 'disabled' if readonly }}>
+          {% for opt in ['Agente Político','Comissionado','Efetivo','Contratado','Convidado'] %}
+          <option {{ 'selected' if p and p.status_form == opt }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">1. Informações do Beneficiário</div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="field"><label>1. Nome do Servidor</label>
+        <input type="text" name="nome" value="{{ p.nome or '' if p else '' }}" placeholder="Nome completo" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>2. Matrícula</label>
+        <input type="text" name="matricula" value="{{ p.matricula or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="field"><label>3. CPF</label>
+        <input type="text" name="cpf" value="{{ p.cpf or '' if p else '' }}" placeholder="000.000.000-00" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>4. RG</label>
+        <input type="text" name="rg" value="{{ p.rg or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>5. Tipo de Beneficiário</label>
+        <select name="tipo_benef" id="tipo_benef" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
+          <option value="">Selecione...</option>
+          {% for v,l in [
+            ('Prefeito','Agente Político — Prefeito'),
+            ('Vice-Prefeito','Agente Político — Vice-Prefeito'),
+            ('Secretário','Comissionado — Secretário'),
+            ('Controlador Geral','Comissionado — Controlador Geral'),
+            ('Procurador Geral','Comissionado — Procurador Geral'),
+            ('Chefe de gabinete','Comissionado — Chefe de Gabinete'),
+            ('Demais servidores','Efetivo / Contratado — Demais Servidores'),
+            ('Colaboradores eventuais','Convidado / Colaborador Eventual')
+          ] %}
+          <option value="{{ v }}" {{ 'selected' if p and p.tipo_benef == v }}>{{ l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="field"><label>6. Cargo / Função</label>
+        <input type="text" name="cargo" value="{{ p.cargo or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>7. Órgão / Secretaria</label>
+        <select name="orgao" {{ 'disabled' if readonly }}>
+          <option value="">Selecione...</option>
+          {% for o in ['Gabinete do Prefeito','Gabinete do Vice-Prefeito','Procuradoria Geral do Município',
+            'Controladoria Geral do Município','Ouvidoria do Prefeito','Sec. Municipal de Administração',
+            'Sec. Municipal da Fazenda, Planejamento e Finanças','Sec. Municipal de Desenvolvimento Social',
+            'Sec. Municipal de Infra-Estrutura e Serviços Públicos',
+            'Sec. Municipal de Planejamento Urbano e Meio Ambiente'] %}
+          <option {{ 'selected' if p and p.orgao == o }}>{{ o }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">2. Dados do Deslocamento</div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="field"><label>8. Município de Origem</label>
+        <input type="text" name="origem" value="{{ p.origem if p else "Dias d'Ávila - BA" }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>9. Município de Destino</label>
+        <input type="text" name="destino" value="{{ p.destino or '' if p else '' }}" placeholder="Cidade - UF" {{ 'readonly' if readonly }}></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="field"><label>10. Data de Saída</label>
+        <input type="date" id="dt_saida" name="dt_saida" value="{{ p.dt_saida or '' if p else '' }}" onchange="calcDiaria()" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>11. Hora de Saída</label>
+        <input type="time" id="hr_saida" name="hr_saida" value="{{ p.hr_saida or '' if p else '' }}" onchange="calcDiaria()" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>12. Data de Chegada</label>
+        <input type="date" id="dt_chegada" name="dt_chegada" value="{{ p.dt_chegada or '' if p else '' }}" onchange="calcDiaria()" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>13. Hora de Chegada</label>
+        <input type="time" id="hr_chegada" name="hr_chegada" value="{{ p.hr_chegada or '' if p else '' }}" onchange="calcDiaria()" {{ 'readonly' if readonly }}></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="field"><label>14. Tipo de Viagem</label>
+        <select id="tipo_viagem" name="tipo_viagem" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
+          <option value="">Selecione...</option>
+          <option value="no_estado"   {{ 'selected' if p and p.tipo_viagem=='no_estado' }}>Dentro do Estado</option>
+          <option value="fora_estado" {{ 'selected' if p and p.tipo_viagem=='fora_estado' }}>Fora do Estado</option>
+        </select>
+      </div>
+      <div class="field"><label>15. Horas de Viagem (calculado)</label>
+        <input type="text" id="horas_viagem" name="horas_viagem" value="{{ p.horas_viagem or '' if p else '' }}" readonly></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">3. Justificativa</div>
+  <div class="card-body">
+    <div style="margin-bottom:8px">
+      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">16. Fundamentação Legal</label>
+      <textarea name="fund_legal" rows="3" style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;resize:vertical" {{ 'readonly' if readonly }}>{{ p.fund_legal if p else 'Art. 1º Os servidores públicos civis e os agentes políticos da administração pública do Poder Executivo Municipal que, em caráter eventual ou transitório, e no interesse do serviço, se deslocarem para outro município, farão jus, além do transporte, à percepção de diárias para atender às despesas com locomoção, alimentação e hospedagem.' }}</textarea>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">17. Descrição da Viagem &amp; Tarefas</label>
+      <textarea name="descricao" rows="4" style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;resize:vertical" placeholder="Descreva as atividades, reuniões ou agenda institucional..." {{ 'readonly' if readonly }}>{{ p.descricao or '' if p else '' }}</textarea>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">4. Base de Cálculo das Diárias</div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="field"><label>18. Desl. &lt;24h com hospedagem?</label>
+        <select id="desl_24h" name="desl_24h" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
+          <option value="nao" {{ 'selected' if not p or p.desl_24h != 'sim' }}>Não</option>
+          <option value="sim" {{ 'selected' if p and p.desl_24h == 'sim' }}>Sim</option>
+        </select>
+      </div>
+      <div class="field"><label>19. Hospedagem por outra inst.?</label>
+        <select id="hosp_outra" name="hosp_outra" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
+          <option value="nao" {{ 'selected' if not p or p.hosp_outra != 'sim' }}>Não</option>
+          <option value="sim" {{ 'selected' if p and p.hosp_outra == 'sim' }}>Sim</option>
+        </select>
+      </div>
+      <div class="field"><label>20. Alimentação por outra inst.?</label>
+        <select id="alim_outra" name="alim_outra" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
+          <option value="nao" {{ 'selected' if not p or p.alim_outra != 'sim' }}>Não</option>
+          <option value="sim" {{ 'selected' if p and p.alim_outra == 'sim' }}>Sim</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="background:#eef4ff;border:1px solid #b0c8f0;border-radius:6px;padding:10px 14px">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:4px">
+        <span style="font-size:11px;font-weight:bold;color:#444">Classe</span>
+        <span style="font-size:11px;font-weight:bold;color:#444">Tipo</span>
+        <span style="font-size:11px;font-weight:bold;color:#444">Qtd. Inteiras</span>
+        <span style="font-size:11px;font-weight:bold;color:#444">Qtd. Meias</span>
+        <span style="font-size:11px;font-weight:bold;color:#444">Valor Unit.</span>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px">
+        <input type="text" id="r_classe"   name="r_classe"   value="{{ p.r_classe or '' if p else '' }}" readonly style="padding:5px 8px;border:1px solid #bbb;border-radius:4px;background:#f0f2f5;font-size:13px">
+        <input type="text" id="r_tipo"     name="r_tipo"     value="{{ p.r_tipo or '' if p else '' }}"   readonly style="padding:5px 8px;border:1px solid #bbb;border-radius:4px;background:#f0f2f5;font-size:13px">
+        <input type="text" id="r_qtd_int"  name="r_qtd_int"  value="{{ p.r_qtd_int or '' if p else '' }}" readonly style="padding:5px 8px;border:1px solid #bbb;border-radius:4px;background:#f0f2f5;font-size:13px">
+        <input type="text" id="r_qtd_meio" name="r_qtd_meio" value="{{ p.r_qtd_meio or '' if p else '' }}" readonly style="padding:5px 8px;border:1px solid #bbb;border-radius:4px;background:#f0f2f5;font-size:13px">
+        <input type="text" id="r_valor_display" value="{{ 'R$ %.2f'|format(p.r_valor or 0)|replace('.',',') if p else '' }}" readonly style="padding:5px 8px;border:1px solid #bbb;border-radius:4px;background:#f0f2f5;font-size:13px">
+        <input type="hidden" id="r_valor" name="r_valor" value="{{ p.r_valor or 0 if p else 0 }}">
+      </div>
+      <div style="background:#1a3f7a;color:#fff;border-radius:6px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <span>Total de Benefícios a Receber Adiantado:</span>
+        <strong id="r_total" style="font-size:18px">{{ 'R$ %.2f'|format(p.total_diaria or 0)|replace('.',',') if p else 'R$ 0,00' }}</strong>
+      </div>
+      <input type="hidden" id="total_diaria" name="total_diaria" value="{{ p.total_diaria or 0 if p else 0 }}">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">5. Informações Orçamentárias e de Pagamento</div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="field"><label>21. Banco</label>
+        <select name="banco" {{ 'disabled' if readonly }}>
+          <option value="">Selecione...</option>
+          {% for b in ['Banco do Brasil','Caixa Econômica Federal','Banco Bradesco','Banco Itaú','Santander',
+            'Banco Sicredi','Banco Sicoob','Banco Safra','Nubank','Banco Inter','C6 Bank','Banco do Nordeste (BNB)'] %}
+          <option {{ 'selected' if p and p.banco == b }}>{{ b }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field"><label>22. Agência</label>
+        <input type="text" name="agencia" value="{{ p.agencia or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>23. Conta Corrente</label>
+        <input type="text" name="conta" value="{{ p.conta or '' if p else '' }}" placeholder="00000000-0" {{ 'readonly' if readonly }}></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="field"><label>24. Unidade Orçamentária</label>
+        <input type="text" name="un_orc" value="{{ p.un_orc or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>25. Projeto / Atividade</label>
+        <input type="text" name="proj_atv" value="{{ p.proj_atv or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>26. Elemento de Despesa / Sub</label>
+        <input type="text" name="elem_desp" value="{{ p.elem_desp or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #anexo1 -->
+
+<!-- ===== ANEXO II ===== -->
+<div id="anexo2" style="display:none">
+
+<div class="card">
+  <div class="card-header">6. Despesas Realizadas (Prestação de Contas — Anexo II)</div>
+  <div class="card-body">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px">
+      <thead>
+        <tr>
+          <th style="background:#f0f2f5;padding:6px 8px;text-align:left;font-size:11px;font-weight:bold;border-bottom:1px solid #ccc;width:65%">Item</th>
+          <th style="background:#f0f2f5;padding:6px 8px;text-align:right;font-size:11px;font-weight:bold;border-bottom:1px solid #ccc">Valor (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for campo, label in [
+          ('d_alim','Alimentação (Notas fiscais anexas)'),
+          ('d_transp','Transporte Interno / Urbano / Deslocamentos'),
+          ('d_taxa','Taxas de Embarque / Desembarque'),
+          ('d_reparos','Reparos e Manutenções Emergenciais (Veículo Oficial)'),
+          ('d_outros','Outros Gastos Autorizados')
+        ] %}
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #eee">{{ label }}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right">
+            <input type="number" id="{{ campo }}" name="{{ campo }}"
+              value="{{ p[campo]|default(0, true) if p else 0 }}"
+              step="0.01" min="0" onchange="calcPrestacao()"
+              style="width:130px;text-align:right;padding:4px 6px;border:1px solid #bbb;border-radius:4px;font-size:13px"
+              {{ 'readonly' if readonly }}>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="background:#f5f7fa;border-radius:6px;padding:12px 16px;border:1px solid #ddd">
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee"><span>(A) Total Real de Gastos:</span><span id="b_total_gastos">R$ 0,00</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee"><span>(B) Total Adiantado:</span><span id="b_adiantado">R$ 0,00</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee"><span>Complementar a Receber (A &gt; B):</span><span id="b_complementar" style="color:#1a6a2a">R$ 0,00</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-weight:bold;font-size:14px"><span>Total a Devolver (B &gt; A):</span><span id="b_devolver" style="color:#c0392b">R$ 0,00</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">27. Observações</div>
+  <div class="card-body">
+    <textarea name="a2_obs" rows="3" style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;resize:vertical" placeholder="Observações sobre a prestação de contas..." {{ 'readonly' if readonly }}>{{ p.a2_obs or '' if p else '' }}</textarea>
+  </div>
+</div>
+
+</div><!-- #anexo2 -->
+
+{% if not readonly %}
+<div class="btn-row no-print" style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+  <a href="{{ url_for('processos.listar') }}" class="btn btn-secondary">Cancelar</a>
+  <button type="submit" name="acao" value="rascunho" class="btn btn-secondary">💾 Salvar Rascunho</button>
+  <button type="submit" name="acao" value="submeter" class="btn btn-primary">📤 Salvar e Submeter para Aprovação</button>
+</div>
+{% else %}
+<div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end">
+  <a href="{{ url_for('processos.listar') }}" class="btn btn-secondary">← Voltar</a>
+  <a href="{{ url_for('processos.exportar', pid=p.id) }}" class="btn btn-primary">⬇ Exportar PDF</a>
+</div>
+{% endif %}
+
+</form>
+
+<style>
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:#555;font-weight:bold}
+.field input,.field select,.field textarea{padding:5px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;background:#fff;color:#222;width:100%}
+input[readonly],input.ro{background:#f0f2f5;color:#555}
+</style>
+
+<script>
+const VALORES = {
+  "Prefeito":               {no_estado:618.96, fora_estado:990.32},
+  "Vice-Prefeito":          {no_estado:495.17, fora_estado:742.74},
+  "Secretário":             {no_estado:495.17, fora_estado:742.74},
+  "Controlador Geral":      {no_estado:495.17, fora_estado:742.74},
+  "Procurador Geral":       {no_estado:495.17, fora_estado:742.74},
+  "Chefe de gabinete":      {no_estado:495.17, fora_estado:742.74},
+  "Demais servidores":      {no_estado:371.38, fora_estado:200.00},
+  "Colaboradores eventuais":{no_estado:105.25, fora_estado: 80.00}
+};
+
+function fmtBRL(v){ return 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+
+function calcDiaria(){
+  const tipo      = document.getElementById('tipo_benef').value;
+  const tipoV     = document.getElementById('tipo_viagem').value;
+  const dtS       = document.getElementById('dt_saida').value;
+  const hrS       = document.getElementById('hr_saida').value;
+  const dtC       = document.getElementById('dt_chegada').value;
+  const hrC       = document.getElementById('hr_chegada').value;
+  const desl24    = document.getElementById('desl_24h').value;
+  const hospOutra = document.getElementById('hosp_outra').value;
+  const alimOutra = document.getElementById('alim_outra').value;
+
+  if(!dtS||!hrS||!dtC||!hrC||!tipoV||!tipo) return;
+
+  const saida  = new Date(`${dtS}T${hrS}`);
+  const chegada= new Date(`${dtC}T${hrC}`);
+  if(chegada<=saida) return;
+
+  const diffH = (chegada-saida)/3600000;
+  const hTot  = Math.floor(diffH);
+  const mTot  = Math.round((diffH-hTot)*60);
+  document.getElementById('horas_viagem').value = `${hTot}h ${mTot}min`;
+
+  const tabela = VALORES[tipo]; if(!tabela) return;
+  let valorBase = tabela[tipoV]||0;
+  if(hospOutra==='sim'||alimOutra==='sim') valorBase*=0.5;
+
+  const diasInt   = Math.floor(diffH/24);
+  const horasRest = diffH%24;
+  let meias=0, tipoDiaria='';
+
+  if(desl24==='sim'){ tipoDiaria='Integral'; }
+  else if(diffH<24){ if(horasRest>=6){meias=1;tipoDiaria='Parcial';}else tipoDiaria='—'; }
+  else { if(horasRest>=6) meias=1; tipoDiaria=diasInt>0&&meias>0?'Integral e parcial':diasInt>0?'Integral':'Parcial'; }
+
+  const total=(diasInt*valorBase)+(meias*(valorBase*0.5));
+
+  document.getElementById('r_classe').value   = tipo;
+  document.getElementById('r_tipo').value     = tipoDiaria;
+  document.getElementById('r_qtd_int').value  = diasInt;
+  document.getElementById('r_qtd_meio').value = meias;
+  document.getElementById('r_valor').value    = valorBase.toFixed(2);
+  document.getElementById('r_valor_display').value = fmtBRL(valorBase);
+  document.getElementById('r_total').textContent   = fmtBRL(total);
+  document.getElementById('total_diaria').value    = total.toFixed(2);
+
+  window._totalDiaria = total;
+  calcPrestacao();
+}
+
+function calcPrestacao(){
+  const ids=['d_alim','d_transp','d_taxa','d_reparos','d_outros'];
+  const gastos=ids.reduce((s,id)=>s+(parseFloat(document.getElementById(id)?.value)||0),0);
+  const adiant=window._totalDiaria||(parseFloat(document.getElementById('total_diaria').value)||0);
+  document.getElementById('b_total_gastos').textContent  = fmtBRL(gastos);
+  document.getElementById('b_adiantado').textContent     = fmtBRL(adiant);
+  document.getElementById('b_complementar').textContent  = fmtBRL(Math.max(0,gastos-adiant));
+  document.getElementById('b_devolver').textContent      = fmtBRL(Math.max(0,adiant-gastos));
+}
+
+function showTab(n){
+  document.getElementById('anexo1').style.display = n===1?'':'none';
+  document.getElementById('anexo2').style.display = n===2?'':'none';
+  document.getElementById('tab1').style.cssText += n===1?';background:#fff;color:#1a3f7a;font-weight:bold;border-bottom:3px solid #1a3f7a':';background:#f5f7fa;color:#555;font-weight:normal;border-bottom:none';
+  document.getElementById('tab2').style.cssText += n===2?';background:#fff;color:#1a3f7a;font-weight:bold;border-bottom:3px solid #1a3f7a':';background:#f5f7fa;color:#555;font-weight:normal;border-bottom:none';
+}
+
+window._totalDiaria = parseFloat(document.getElementById('total_diaria').value)||0;
+calcPrestacao();
+</script>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Processos — Diárias{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+  <h2 style="font-size:16px;color:#1a3f7a">Processos de Diária</h2>
+  <a href="{{ url_for('formulario.novo') }}" class="btn btn-primary">+ Novo Processo</a>
+</div>
+
+<form method="GET" class="toolbar">
+  <input type="text" name="q" value="{{ filtros.q }}" placeholder="Buscar por nome, formulário, destino, órgão...">
+  <select name="status" onchange="this.form.submit()">
+    <option value="">Todos os status</option>
+    <option value="rascunho"  {% if filtros.status=='rascunho' %}selected{% endif %}>Rascunho</option>
+    <option value="submetido" {% if filtros.status=='submetido' %}selected{% endif %}>Submetido</option>
+    <option value="aprovado"  {% if filtros.status=='aprovado' %}selected{% endif %}>Aprovado</option>
+    <option value="reprovado" {% if filtros.status=='reprovado' %}selected{% endif %}>Reprovado</option>
+  </select>
+  <select name="viagem" onchange="this.form.submit()">
+    <option value="">Tipo de viagem</option>
+    <option value="no_estado"   {% if filtros.viagem=='no_estado' %}selected{% endif %}>Dentro do Estado</option>
+    <option value="fora_estado" {% if filtros.viagem=='fora_estado' %}selected{% endif %}>Fora do Estado</option>
+  </select>
+  <button type="submit" class="btn btn-secondary">Buscar</button>
+  <a href="{{ url_for('processos.listar') }}" class="btn btn-secondary">Limpar</a>
+</form>
+
+{% if processos %}
+<div class="card">
+  <div class="card-header">{{ processos|length }} processo(s) encontrado(s)</div>
+  <table class="lista">
+    <thead>
+      <tr>
+        <th>Form. Nº</th>
+        <th>Servidor</th>
+        <th>Destino</th>
+        <th>Saída</th>
+        <th>Retorno</th>
+        <th>Tipo</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th class="no-print">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in processos %}
+      <tr>
+        <td><strong>{{ p.num_form }}</strong></td>
+        <td>
+          {{ p.nome or '—' }}
+          {% if p.orgao %}<br><small style="color:#888">{{ p.orgao }}</small>{% endif %}
+        </td>
+        <td>{{ p.destino or '—' }}</td>
+        <td>{{ p.dt_saida.replace('-','/')|reverse if p.dt_saida else '—' }}</td>
+        <td>{{ p.dt_chegada.replace('-','/')|reverse if p.dt_chegada else '—' }}</td>
+        <td>
+          <span class="badge {{ 'badge-estado' if p.tipo_viagem == 'no_estado' else 'badge-fora' }}">
+            {{ 'No Estado' if p.tipo_viagem == 'no_estado' else 'Fora do Estado' }}
+          </span>
+        </td>
+        <td><strong>{{ p.total_diaria | brl }}</strong></td>
+        <td><span class="badge badge-{{ p.status }}">{{ p.status|capitalize }}</span></td>
+        <td class="no-print" style="white-space:nowrap">
+          <a href="{{ url_for('formulario.editar', pid=p.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+          <a href="{{ url_for('processos.exportar', pid=p.id) }}" class="btn btn-secondary btn-sm">⬇ PDF</a>
+
+          {% if current_user.perfil in ('aprovador','admin') and p.status == 'submetido' %}
+          <button class="btn btn-sm btn-success" onclick="abrirAprovacao({{ p.id }}, '{{ p.num_form }}', 'aprovar')">Aprovar</button>
+          <button class="btn btn-sm btn-danger" onclick="abrirAprovacao({{ p.id }}, '{{ p.num_form }}', 'reprovar')">Reprovar</button>
+          {% endif %}
+          {% if current_user.perfil == 'admin' or (current_user.perfil == 'preenchedor' and p.usuario_id == current_user.id and p.status == 'rascunho') %}
+          <button class="btn btn-sm btn-danger" onclick="confirmarExclusao({{ p.id }}, '{{ p.num_form }}')">🗑 Excluir</button>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty">
+  <p style="font-size:15px;margin-bottom:6px">Nenhum processo encontrado</p>
+  <small>{% if filtros.q or filtros.status or filtros.viagem %}Tente outros filtros.{% else %}<a href="{{ url_for('formulario.novo') }}">Criar o primeiro processo</a>{% endif %}</small>
+</div>
+{% endif %}
+
+
+<!-- Modal exclusão -->
+<div id="modal-excluir" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:8px;padding:24px;width:380px;max-width:90vw">
+    <h3 style="margin-bottom:8px;font-size:15px;color:#c0392b">🗑 Excluir Processo</h3>
+    <p id="excluir-msg" style="font-size:13px;color:#555;margin-bottom:16px"></p>
+    <form id="excluir-form" method="POST">
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-secondary" onclick="fecharExcluir()">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal aprovação -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:8px;padding:24px;width:400px;max-width:90vw">
+    <h3 id="modal-titulo" style="margin-bottom:12px;font-size:15px;color:#1a3f7a"></h3>
+    <form id="modal-form" method="POST">
+      <input type="hidden" name="acao" id="modal-acao">
+      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:4px">Observação (opcional)</label>
+      <textarea name="obs_aprovacao" rows="3" style="width:100%;padding:7px;border:1px solid #bbb;border-radius:4px;font-size:13px;margin-bottom:14px"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" id="modal-btn" class="btn btn-primary">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirAprovacao(pid, num, acao){
+  document.getElementById('modal').style.display='flex';
+  document.getElementById('modal-titulo').textContent = (acao==='aprovar'?'Aprovar':'Reprovar') + ' processo ' + num;
+  document.getElementById('modal-acao').value = acao;
+  document.getElementById('modal-btn').textContent = acao==='aprovar'?'Confirmar Aprovação':'Confirmar Reprovação';
+  document.getElementById('modal-btn').className = 'btn ' + (acao==='aprovar'?'btn-success':'btn-danger');
+  document.getElementById('modal-form').action = '/processos/aprovar/' + pid;
+}
+
+function confirmarExclusao(pid, num){
+  document.getElementById('modal-excluir').style.display='flex';
+  document.getElementById('excluir-msg').textContent = 'Deseja excluir permanentemente o processo ' + num + '? Esta ação não pode ser desfeita.';
+  document.getElementById('excluir-form').action = '/processos/excluir/' + pid;
+}
+function fecharExcluir(){ document.getElementById('modal-excluir').style.display='none'; }
+
+function fecharModal(){ document.getElementById('modal').style.display='none'; }
+
+// formatar datas dd/mm/yyyy sem Jinja reverse
+document.querySelectorAll('td').forEach(td=>{
+  td.innerHTML = td.innerHTML.replace(/(\d{4})-(\d{2})-(\d{2})/g,'$3/$2/$1');
+});
+</script>
+{% endblock %}

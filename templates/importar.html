@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Importar Planilhas — Diárias{% endblock %}
+{% block content %}
+
+<h2 style="font-size:16px;color:#1a3f7a;margin-bottom:14px">Importar Processos (.xlsx)</h2>
+
+<div class="card">
+  <div class="card-header">Selecionar Arquivos</div>
+  <div class="card-body">
+    <p style="font-size:13px;color:#555;margin-bottom:14px">
+      Selecione um ou mais arquivos <strong>.xlsx</strong> no layout padrão da Prefeitura de Dias d'Ávila.
+      Cada arquivo será importado como um processo com status <strong>Rascunho</strong>, podendo ser editado e submetido normalmente.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data" id="upload-form">
+      <div id="drop-zone" style="
+        border:2px dashed #b0c8f0;border-radius:8px;padding:36px;text-align:center;
+        background:#f5f8ff;cursor:pointer;transition:border-color 0.2s;margin-bottom:14px
+      " onclick="document.getElementById('file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#1a3f7a'"
+         ondragleave="this.style.borderColor='#b0c8f0'"
+         ondrop="handleDrop(event)">
+        <div style="font-size:32px;margin-bottom:8px">📂</div>
+        <p style="font-size:14px;font-weight:bold;color:#1a3f7a;margin-bottom:4px">Clique ou arraste os arquivos aqui</p>
+        <p style="font-size:12px;color:#888">Apenas arquivos .xlsx — múltiplos permitidos</p>
+      </div>
+
+      <input type="file" id="file-input" name="arquivos" multiple accept=".xlsx"
+             style="display:none" onchange="mostrarArquivos(this.files)">
+
+      <div id="file-list" style="margin-bottom:14px"></div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <a href="{{ url_for('processos.listar') }}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" id="btn-importar" class="btn btn-primary" disabled>
+          ⬆ Importar Arquivos
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if resultados %}
+<div class="card">
+  <div class="card-header">Resultado da Importação</div>
+  <table class="lista">
+    <thead>
+      <tr>
+        <th>Arquivo</th>
+        <th>Formulário Nº</th>
+        <th>Status</th>
+        <th>Mensagem</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in resultados %}
+      <tr>
+        <td style="font-size:12px;color:#555;max-width:200px;word-break:break-all">{{ r.nome }}</td>
+        <td><strong>{{ r.num_form or '—' }}</strong></td>
+        <td>
+          {% if r.status == 'ok' %}
+            <span class="badge badge-aprovado">✓ Importado</span>
+          {% else %}
+            <span class="badge badge-reprovado">✗ Erro</span>
+          {% endif %}
+        </td>
+        <td style="font-size:12px">{{ r.mensagem }}</td>
+        <td>
+          {% if r.status == 'ok' %}
+            <a href="{{ url_for('processos.listar') }}?q={{ r.num_form }}" class="btn btn-secondary btn-sm">Ver</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script>
+let arquivosSelecionados = [];
+
+function mostrarArquivos(files) {
+  arquivosSelecionados = Array.from(files);
+  renderLista();
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  document.getElementById('drop-zone').style.borderColor = '#b0c8f0';
+  const dt = event.dataTransfer;
+  arquivosSelecionados = Array.from(dt.files).filter(f => f.name.endsWith('.xlsx'));
+
+  // injeta no input para o form enviar
+  const input = document.getElementById('file-input');
+  const dataTransfer = new DataTransfer();
+  arquivosSelecionados.forEach(f => dataTransfer.items.add(f));
+  input.files = dataTransfer.files;
+
+  renderLista();
+}
+
+function renderLista() {
+  const container = document.getElementById('file-list');
+  const btn = document.getElementById('btn-importar');
+
+  if (arquivosSelecionados.length === 0) {
+    container.innerHTML = '';
+    btn.disabled = true;
+    return;
+  }
+
+  const validos   = arquivosSelecionados.filter(f => f.name.endsWith('.xlsx'));
+  const invalidos = arquivosSelecionados.filter(f => !f.name.endsWith('.xlsx'));
+
+  let html = `<p style="font-size:12px;color:#555;margin-bottom:8px">
+    <strong>${validos.length}</strong> arquivo(s) xlsx selecionado(s)
+    ${invalidos.length > 0 ? `<span style="color:#c0392b"> — ${invalidos.length} ignorado(s) (formato inválido)</span>` : ''}
+  </p>
+  <div style="max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:4px">`;
+
+  validos.forEach((f, i) => {
+    const kb = (f.size / 1024).toFixed(1);
+    html += `<div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px">
+      <span>📄 ${f.name}</span>
+      <span style="color:#888">${kb} KB</span>
+    </div>`;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+  btn.disabled = validos.length === 0;
+}
+</script>
+
+{% endblock %}

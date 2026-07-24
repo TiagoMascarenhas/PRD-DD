@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% block title %}Revisar Importação — Diárias{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+  <h2 style="font-size:16px;color:#1a3f7a">Revisar antes de importar</h2>
+  <a href="{{ url_for('importar.importar') }}" class="btn btn-secondary">← Cancelar e voltar</a>
+</div>
+
+{% if invalidos %}
+<div class="flash erro" style="margin-bottom:14px">
+  <strong>{{ invalidos|length }} arquivo(s) ignorado(s)</strong> por formato inválido:
+  {% for nome in invalidos %}<em>{{ nome }}</em>{% if not loop.last %}, {% endif %}{% endfor %}
+</div>
+{% endif %}
+
+{% set total_erros = previsoes | selectattr('parse_erro') | list | length %}
+{% set total_ok    = previsoes | rejectattr('parse_erro') | list | length %}
+
+<div style="background:#eef4ff;border:1px solid #b0c8f0;border-radius:6px;padding:12px 16px;margin-bottom:16px;display:flex;gap:24px;align-items:center">
+  <span style="font-size:13px">
+    <strong>{{ previsoes|length }}</strong> arquivo(s) para revisar —
+    <span style="color:#2e7d32"><strong>{{ total_ok }}</strong> lidos com sucesso</span>
+    {% if total_erros %} · <span style="color:#c0392b"><strong>{{ total_erros }}</strong> com erro de leitura</span>{% endif %}
+  </span>
+  <span style="flex:1"></span>
+  <span style="font-size:12px;color:#555">Campos em <span style="background:#fff3cd;padding:1px 6px;border-radius:3px;border:1px solid #ffc107">amarelo</span> precisam de atenção</span>
+</div>
+
+<form method="POST" action="{{ url_for('importar.revisar') }}">
+
+{% for prev in previsoes %}{% set i = loop.index0 %}
+  {% set p = prev.dados %}
+  {% set prefix = 'p' ~ i ~ '_' %}
+
+  <div class="card" style="margin-bottom:20px;{% if prev.parse_erro %}border-color:#ef9a9a{% elif prev.faltam_obrig %}border-color:#ffc107{% endif %}">
+
+    {# ── Header do card ── #}
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;
+      {% if prev.parse_erro %}background:#c62828{% elif prev.faltam_obrig %}background:#b35a00{% endif %}">
+      <span>
+        📄 {{ prev.nome_arquivo }}
+        {% if not prev.parse_erro %}
+          &nbsp;·&nbsp; Form. <strong>{{ p.num_form }}</strong>
+        {% endif %}
+      </span>
+      <span style="font-size:12px;font-weight:normal">
+        {% if prev.parse_erro %}
+          ✗ Erro de leitura
+        {% elif prev.faltam_obrig %}
+          ⚠ {{ prev.faltam_obrig|length }} campo(s) obrigatório(s) em falta
+        {% elif prev.faltam_rec %}
+          ℹ {{ prev.faltam_rec|length }} campo(s) recomendado(s) em falta
+        {% else %}
+          ✓ Pronto para importar
+        {% endif %}
+      </span>
+    </div>
+
+    <div class="card-body">
+
+    {# ── Erro de leitura ── #}
+    {% if prev.parse_erro %}
+      <div style="color:#c0392b;font-size:13px;padding:8px 0">
+        <strong>Não foi possível ler este arquivo:</strong> {{ prev.parse_erro }}<br>
+        <small>Verifique se o arquivo segue o layout padrão da Prefeitura.</small>
+      </div>
+
+    {% else %}
+
+    {# ── Alertas ── #}
+    {% if prev.faltam_obrig %}
+    <div style="background:#fff3e0;border:1px solid #ffc107;border-radius:4px;padding:10px 12px;margin-bottom:14px;font-size:12px">
+      <strong>⚠ Campos obrigatórios em branco:</strong>
+      {{ prev.faltam_obrig | join(', ') }}<br>
+      <small>Preencha os campos destacados antes de confirmar a importação.</small>
+    </div>
+    {% endif %}
+    {% if prev.faltam_rec %}
+    <div style="background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:8px 12px;margin-bottom:14px;font-size:12px;color:#555">
+      <strong>ℹ Campos recomendados em branco:</strong>
+      {{ prev.faltam_rec | join(', ') }}
+    </div>
+    {% endif %}
+
+    {# ── Macro para campo editável ── #}
+    {% macro campo(label, nome, tipo='text', obrig=false, rec=false) %}
+      {% set val = p[nome] if p and p[nome] is defined else '' %}
+      {% set vazio = not val or val|string|trim == '' or (tipo == 'number' and val|float == 0) %}
+      {% set destaque = (obrig and vazio) or (rec and vazio) %}
+      <div class="field">
+        <label style="font-size:11px;font-weight:bold;color:{% if obrig and vazio %}#b35a00{% elif rec and vazio %}#888{% else %}#555{% endif %}">
+          {{ label }}{% if obrig %} <span style="color:#c0392b">*</span>{% endif %}
+        </label>
+        <input type="{{ tipo }}" name="{{ prefix }}{{ nome }}"
+               value="{{ val }}"
+               style="padding:5px 8px;border:1px solid {% if destaque and obrig %}#ffc107{% elif destaque %}#ddd{% else %}#bbb{% endif %};
+                      border-radius:4px;font-size:13px;width:100%;
+                      background:{% if obrig and vazio %}#fff8e1{% elif rec and vazio %}#fafafa{% else %}#fff{% endif %};
+                      color:#222"
+               {% if obrig %}required{% endif %}
+               {% if tipo == 'number' %}step="0.01" min="0"{% endif %}>
+      </div>
+    {% endmacro %}
+
+    {% macro campo_select(label, nome, opcoes, obrig=false) %}
+      {% set val = p[nome] if p and p[nome] is defined else '' %}
+      {% set vazio = not val or val|string|trim == '' %}
+      <div class="field">
+        <label style="font-size:11px;font-weight:bold;color:{% if obrig and vazio %}#b35a00{% else %}#555{% endif %}">
+          {{ label }}{% if obrig %} <span style="color:#c0392b">*</span>{% endif %}
+        </label>
+        <select name="{{ prefix }}{{ nome }}"
+                style="padding:5px 8px;border:1px solid {% if obrig and vazio %}#ffc107{% else %}#bbb{% endif %};
+                       border-radius:4px;font-size:13px;width:100%;
+                       background:{% if obrig and vazio %}#fff8e1{% else %}#fff{% endif %}">
+          {% for v, l in opcoes %}
+          <option value="{{ v }}" {{ 'selected' if val == v }}>{{ l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endmacro %}
+
+    {# ── Seção 1: Beneficiário ── #}
+    <div style="font-size:11px;font-weight:bold;color:#1a3f7a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">
+      Informações do Beneficiário
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('Nome do Servidor', 'nome', obrig=true) }}
+      {{ campo('Matrícula', 'matricula', rec=true) }}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('CPF', 'cpf', rec=true) }}
+      {{ campo('RG', 'rg') }}
+      {{ campo_select('Tipo de Beneficiário', 'tipo_benef', [
+          ('','Selecione...'),
+          ('Prefeito','Agente Político — Prefeito'),
+          ('Vice-Prefeito','Agente Político — Vice-Prefeito'),
+          ('Secretário','Comissionado — Secretário'),
+          ('Controlador Geral','Comissionado — Controlador Geral'),
+          ('Procurador Geral','Comissionado — Procurador Geral'),
+          ('Chefe de gabinete','Comissionado — Chefe de Gabinete'),
+          ('Demais servidores','Efetivo / Contratado — Demais Servidores'),
+          ('Colaboradores eventuais','Convidado / Colaborador Eventual'),
+        ], obrig=true) }}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      {{ campo('Cargo / Função', 'cargo', obrig=true) }}
+      {{ campo('Órgão / Secretaria', 'orgao', obrig=true) }}
+    </div>
+
+    {# ── Seção 2: Deslocamento ── #}
+    <div style="font-size:11px;font-weight:bold;color:#1a3f7a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">
+      Deslocamento
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('Município de Origem', 'origem', obrig=true) }}
+      {{ campo('Município de Destino', 'destino', obrig=true) }}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('Data de Saída', 'dt_saida', tipo='date', obrig=true) }}
+      {{ campo('Hora de Saída', 'hr_saida', tipo='time', obrig=true) }}
+      {{ campo('Data de Chegada', 'dt_chegada', tipo='date', obrig=true) }}
+      {{ campo('Hora de Chegada', 'hr_chegada', tipo='time', obrig=true) }}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      {{ campo_select('Tipo de Viagem', 'tipo_viagem', [
+          ('','Selecione...'),
+          ('no_estado','Dentro do Estado'),
+          ('fora_estado','Fora do Estado'),
+        ], obrig=true) }}
+      {{ campo('Horas de Viagem', 'horas_viagem') }}
+    </div>
+
+    {# ── Seção 3: Cálculo ── #}
+    <div style="font-size:11px;font-weight:bold;color:#1a3f7a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">
+      Cálculo das Diárias
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('Classe do Servidor', 'r_classe') }}
+      {{ campo('Tipo da Diária', 'r_tipo') }}
+      {{ campo('Qtd. Inteiras', 'r_qtd_int', tipo='number') }}
+      {{ campo('Qtd. Meias', 'r_qtd_meio', tipo='number') }}
+      {{ campo('Valor Unitário (R$)', 'r_valor', tipo='number') }}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 3fr;gap:8px;margin-bottom:16px">
+      {{ campo('Total da Diária (R$)', 'total_diaria', tipo='number', obrig=true) }}
+      <div></div>
+    </div>
+
+    {# ── Seção 4: Orçamento ── #}
+    <div style="font-size:11px;font-weight:bold;color:#1a3f7a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">
+      Orçamento e Pagamento
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('Unidade Orçamentária', 'un_orc', rec=true) }}
+      {{ campo('Projeto / Atividade', 'proj_atv', rec=true) }}
+      {{ campo('Elemento de Despesa', 'elem_desp', rec=true) }}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      {{ campo('Banco', 'banco', rec=true) }}
+      {{ campo('Agência', 'agencia', rec=true) }}
+      {{ campo('Conta Corrente', 'conta', rec=true) }}
+    </div>
+
+    {% endif %}{# /parse_erro #}
+    </div>{# /card-body #}
+  </div>{# /card #}
+{% endfor %}
+
+{# ── Botões finais ── #}
+{% set tem_valido = previsoes | rejectattr('parse_erro') | list | length > 0 %}
+{% if tem_valido %}
+<div style="position:sticky;bottom:0;background:#f0f2f5;border-top:1px solid #ccc;padding:14px 0;display:flex;gap:10px;justify-content:flex-end">
+  <a href="{{ url_for('importar.importar') }}" class="btn btn-secondary">Cancelar</a>
+  <button type="submit" class="btn btn-primary">
+    ✓ Confirmar e Salvar {{ previsoes | rejectattr('parse_erro') | list | length }} processo(s)
+  </button>
+</div>
+{% else %}
+<div style="text-align:right;margin-top:14px">
+  <a href="{{ url_for('importar.importar') }}" class="btn btn-secondary">← Voltar e tentar novamente</a>
+</div>
+{% endif %}
+
+</form>
+{% endblock %}

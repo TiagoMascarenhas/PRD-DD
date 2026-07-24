@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Login — Diárias</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.box{background:#fff;border:1px solid #ccc;border-radius:8px;padding:32px;width:340px}
+h1{font-size:16px;color:#1a3f7a;text-align:center;margin-bottom:4px}
+p.sub{font-size:11px;color:#888;text-align:center;margin-bottom:24px}
+label{font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px}
+input{width:100%;padding:8px 10px;border:1px solid #bbb;border-radius:4px;font-size:13px;margin-bottom:14px}
+button{width:100%;background:#1a3f7a;color:#fff;border:none;padding:9px;border-radius:4px;font-size:13px;font-weight:bold;cursor:pointer}
+button:hover{background:#14336a}
+.erro{background:#ffebee;border:1px solid #ef9a9a;color:#b71c1c;padding:8px 12px;border-radius:4px;font-size:13px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>🏛 Sistema de Diárias</h1>
+  <p class="sub">Prefeitura Municipal de Dias d'Ávila</p>
+  {% with msgs = get_flashed_messages(with_categories=True) %}
+    {% for cat, msg in msgs %}<div class="{{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+  <form method="POST">
+    <label>Login</label>
+    <input type="text" name="login" autofocus required>
+    <label>Senha</label>
+    <input type="password" name="senha" required>
+    <button type="submit">Entrar</button>
+  </form>
+</div>
+</body>
+</html>
