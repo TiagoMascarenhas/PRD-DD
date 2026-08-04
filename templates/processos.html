@@ -1,4 +1,4 @@
-\{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% block title %}Processos — Diárias{% endblock %}
 {% block content %}
 
@@ -39,7 +39,7 @@
         <th>Tipo</th>
         <th>Total</th>
         <th>Status</th>
-        <th>Rastro</th>
+        <th>Responsáveis</th>
         <th class="no-print">Ações</th>
       </tr>
     </thead>
@@ -68,16 +68,16 @@
             {% if p.aprovado_em %}<br><small style="color:#999">{{ p.aprovado_em.strftime('%d/%m/%Y %H:%M') }}</small>{% endif %}
           {% endif %}
         </td>
-        <td class="no-print" style="white-space:nowrap">
-          <a href="{{ url_for('formulario.editar', pid=p.id) }}" class="btn btn-secondary btn-sm">Editar</a>
-          <a href="{{ url_for('processos.exportar', pid=p.id) }}" class="btn btn-secondary btn-sm">⬇ PDF</a>
+        <td class="no-print" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;min-width:150px">
+          <a href="{{ url_for('formulario.editar', pid=p.id) }}" class="btn btn-secondary btn-sm" style="text-align:center">Editar</a>
+          <a href="{{ url_for('processos.exportar', pid=p.id) }}" class="btn btn-secondary btn-sm" style="text-align:center">⬇ PDF</a>
 
           {% if current_user.perfil in ('aprovador','admin') and p.status == 'submetido' %}
           <button class="btn btn-sm btn-success" onclick="abrirAprovacao({{ p.id }}, '{{ p.num_form }}', 'aprovar')">Aprovar</button>
           <button class="btn btn-sm btn-danger" onclick="abrirAprovacao({{ p.id }}, '{{ p.num_form }}', 'reprovar')">Reprovar</button>
           {% endif %}
           {% if current_user.perfil == 'admin' or (current_user.perfil == 'preenchedor' and p.usuario_id == current_user.id and p.status == 'rascunho') %}
-          <button class="btn btn-sm btn-danger" onclick="confirmarExclusao({{ p.id }}, '{{ p.num_form }}')">🗑 Excluir</button>
+          <button class="btn btn-sm btn-danger" style="grid-column:1 / -1" onclick="confirmarExclusao({{ p.id }}, '{{ p.num_form }}')">🗑 Excluir</button>
           {% endif %}
         </td>
       </tr>
