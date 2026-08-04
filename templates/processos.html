@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+\{% extends 'base.html' %}
 {% block title %}Processos — Diárias{% endblock %}
 {% block content %}
 
@@ -39,6 +39,7 @@
         <th>Tipo</th>
         <th>Total</th>
         <th>Status</th>
+        <th>Rastro</th>
         <th class="no-print">Ações</th>
       </tr>
     </thead>
@@ -51,8 +52,8 @@
           {% if p.orgao %}<br><small style="color:#888">{{ p.orgao }}</small>{% endif %}
         </td>
         <td>{{ p.destino or '—' }}</td>
-        <td>{{ p.dt_saida.replace('-','/')|reverse if p.dt_saida else '—' }}</td>
-        <td>{{ p.dt_chegada.replace('-','/')|reverse if p.dt_chegada else '—' }}</td>
+        <td>{{ p.dt_saida | data if p.dt_saida else '—' }}</td>
+        <td>{{ p.dt_chegada | data if p.dt_chegada else '—' }}</td>
         <td>
           <span class="badge {{ 'badge-estado' if p.tipo_viagem == 'no_estado' else 'badge-fora' }}">
             {{ 'No Estado' if p.tipo_viagem == 'no_estado' else 'Fora do Estado' }}
@@ -60,6 +61,13 @@
         </td>
         <td><strong>{{ p.total_diaria | brl }}</strong></td>
         <td><span class="badge badge-{{ p.status }}">{{ p.status|capitalize }}</span></td>
+        <td style="font-size:11px;color:#666">
+          Criado por: {{ p.autor.nome if p.autor else '—' }}
+          {% if p.aprovado_por %}
+            <br>{{ 'Aprovado' if p.status == 'aprovado' else 'Reprovado' }} por: {{ p.aprovador.nome if p.aprovador else '—' }}
+            {% if p.aprovado_em %}<br><small style="color:#999">{{ p.aprovado_em.strftime('%d/%m/%Y %H:%M') }}</small>{% endif %}
+          {% endif %}
+        </td>
         <td class="no-print" style="white-space:nowrap">
           <a href="{{ url_for('formulario.editar', pid=p.id) }}" class="btn btn-secondary btn-sm">Editar</a>
           <a href="{{ url_for('processos.exportar', pid=p.id) }}" class="btn btn-secondary btn-sm">⬇ PDF</a>
@@ -132,10 +140,5 @@ function confirmarExclusao(pid, num){
 function fecharExcluir(){ document.getElementById('modal-excluir').style.display='none'; }
 
 function fecharModal(){ document.getElementById('modal').style.display='none'; }
-
-// formatar datas dd/mm/yyyy sem Jinja reverse
-document.querySelectorAll('td').forEach(td=>{
-  td.innerHTML = td.innerHTML.replace(/(\d{4})-(\d{2})-(\d{2})/g,'$3/$2/$1');
-});
 </script>
 {% endblock %}

@@ -111,6 +111,8 @@ class Processo(db.Model):
     aprovado_em  = db.Column(db.DateTime, nullable=True)
     obs_aprovacao = db.Column(db.Text)
 
+    aprovador = db.relationship('Usuario', foreign_keys=[aprovado_por])
+
     @property
     def total_gastos(self):
         return sum(v or 0 for v in [self.d_alim, self.d_transp, self.d_taxa, self.d_reparos, self.d_outros])

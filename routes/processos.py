@@ -143,6 +143,7 @@ td{{padding:4px 8px;border-bottom:1px solid #eee}}
 .ab{{border-top:1px solid #999;padding-top:4px;text-align:center;font-size:10px;color:#555}}
 .page-break{{page-break-before:always;margin-top:20px}}
 .decl{{padding:8px;background:#f5f7fa;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#444;margin-top:8px}}
+.rodape-sistema{{text-align:center;font-size:9px;color:#999;margin-top:16px}}
 @media print{{body{{padding:0}}}}
 </style></head><body>
 
@@ -251,6 +252,8 @@ td{{padding:4px 8px;border-bottom:1px solid #eee}}
   <div class="ab">Homologação Final<br>Gestor / Ordenador</div>
 </div>
 </div></div>
+
+<p class="rodape-sistema">Sistema de Diárias — Desenvolvido pela PMDD - TI</p>
 </div>
 
 </body></html>"""

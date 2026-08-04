@@ -44,6 +44,17 @@ def create_app():
 
     app.jinja_env.filters['brl'] = fmt_brl
 
+    def fmt_data(s):
+        if not s:
+            return ''
+        try:
+            y, m, d = s.split('-')
+            return f'{d}/{m}/{y}'
+        except Exception:
+            return s
+
+    app.jinja_env.filters['data'] = fmt_data
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(formulario_bp, url_prefix='/formulario')
     app.register_blueprint(processos_bp,  url_prefix='/processos')

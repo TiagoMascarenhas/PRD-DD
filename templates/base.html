@@ -8,7 +8,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;font-size:13px;color:#222;background:#f0f2f5}
 nav{background:#1a3f7a;color:#fff;padding:0 24px;display:flex;align-items:center;gap:0;height:48px}
-nav .brand{font-size:14px;font-weight:bold;margin-right:24px;white-space:nowrap}
+nav .brand{font-size:14px;font-weight:bold;margin-right:24px;white-space:nowrap;display:flex;align-items:center;gap:8px}
+nav .brand img{height:28px;width:28px;border-radius:4px}
+footer.rodape{text-align:center;font-size:11px;color:#999;padding:18px 0 24px}
 nav a{color:#ccd9f0;text-decoration:none;padding:0 14px;line-height:48px;font-size:13px;transition:background 0.15s}
 nav a:hover,nav a.ativo{background:rgba(255,255,255,0.12);color:#fff}
 nav .spacer{flex:1}
@@ -47,7 +49,7 @@ table.lista tr:hover td{background:#f5f8ff}
 <body>
 {% if current_user.is_authenticated %}
 <nav>
-  <span class="brand">🏛 Diárias — Dias d'Ávila</span>
+  <span class="brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="Prefeitura de Dias d'Ávila"> Diárias — Dias d'Ávila</span>
   <a href="{{ url_for('processos.listar') }}" {% if request.endpoint == 'processos.listar' %}class="ativo"{% endif %}>Processos</a>
   <a href="{{ url_for('formulario.novo') }}" {% if request.endpoint == 'formulario.novo' %}class="ativo"{% endif %}>+ Novo</a>
   <a href="{{ url_for('importar.importar') }}" {% if request.endpoint == 'importar.importar' %}class="ativo"{% endif %}>⬆ Importar</a>
@@ -69,5 +71,7 @@ table.lista tr:hover td{background:#f5f8ff}
 
   {% block content %}{% endblock %}
 </div>
+
+<footer class="rodape no-print">Desenvolvido pela PMDD - TI</footer>
 </body>
 </html>
