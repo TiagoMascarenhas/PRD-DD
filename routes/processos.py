@@ -148,11 +148,11 @@ td{{padding:4px 8px;border-bottom:1px solid #eee}}
 </style></head><body>
 
 <h1>Prefeitura Municipal de Dias d'Ávila</h1>
-<p class="sub">Anexo I — Lei Nº 393/2013 &amp; Decreto Nº 014/09 | Requisição de Diárias e Autorização de Deslocamento</p>
+<p class="sub">Anexo I — Lei Nº 393/2013 &amp; Decreto Nº 1.313/2013 | Requisição de Diárias </p>
 
 <div class="section"><div class="sh">Identificação</div><div class="sb">
 <div class="row c3">
-  <div class="f"><label>Formulário Nº</label><span>{p.num_form}</span></div>
+  <div class="f"><label>Requisição de Diárias Nº</label><span>{p.num_form}</span></div>
   <div class="f"><label>Data de Emissão</label><span>{fmt_date(p.data_emissao)}</span></div>
   <div class="f"><label>Status</label><span>{p.status_form or '—'}</span></div>
 </div></div></div>
@@ -192,7 +192,7 @@ td{{padding:4px 8px;border-bottom:1px solid #eee}}
   <thead><tr><th>Classe</th><th>Tipo</th><th>Qtd. Inteiras</th><th>Qtd. Meias</th><th>Valor Unit.</th></tr></thead>
   <tbody><tr><td>{p.r_classe or '—'}</td><td>{p.r_tipo or '—'}</td><td>{p.r_qtd_int or 0}</td><td>{p.r_qtd_meio or 0}</td><td>{fmt_brl(p.r_valor)}</td></tr></tbody>
 </table>
-<div class="total"><span>Total a Receber Adiantado:</span><strong>{fmt_brl(adiantado)}</strong></div>
+<div class="total"><span>Total a Receber:</span><strong>{fmt_brl(adiantado)}</strong></div>
 </div></div>
 
 <div class="section"><div class="sh">5. Pagamento</div><div class="sb">
@@ -208,7 +208,7 @@ td{{padding:4px 8px;border-bottom:1px solid #eee}}
 </div>
 <div class="assin">
   <div class="ab">Assinatura do Beneficiário<br>CPF: ________________________</div>
-  <div class="ab">Assinatura do Ordenador de Despesa<br>Responsável Autorizante</div>
+  <div class="ab">Assinatura do Ordenador de Despesa<br></div>
 </div>
 </div></div>
 

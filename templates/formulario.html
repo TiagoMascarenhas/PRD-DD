@@ -19,11 +19,11 @@
   <div class="card-header">Identificação do Formulário</div>
   <div class="card-body">
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-      <div class="field"><label>Formulário Nº</label>
+      <div class="field"><label>Requisição de Diárias Nº</label>
         <input type="text" name="num_form" value="{{ num_form }}" readonly class="ro"></div>
       <div class="field"><label>Data de Emissão</label>
         <input type="date" name="data_emissao" value="{{ p.data_emissao if p else hoje }}" {{ 'readonly' if readonly }}></div>
-      <div class="field"><label>Status</label>
+      <div class="field"><label>Vínculo
         <select name="status_form" {{ 'disabled' if readonly }}>
           {% for opt in ['Agente Político','Comissionado','Efetivo','Contratado','Convidado'] %}
           <option {{ 'selected' if p and p.status_form == opt }}>{{ opt }}</option>
@@ -58,7 +58,7 @@
             ('Controlador Geral','Comissionado — Controlador Geral'),
             ('Procurador Geral','Comissionado — Procurador Geral'),
             ('Chefe de gabinete','Comissionado — Chefe de Gabinete'),
-            ('Demais servidores','Efetivo / Contratado — Demais Servidores'),
+            ('Demais servidores','Demais Servidores'),
             ('Colaboradores eventuais','Convidado / Colaborador Eventual')
           ] %}
           <option value="{{ v }}" {{ 'selected' if p and p.tipo_benef == v }}>{{ l }}</option>
@@ -107,7 +107,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div class="field"><label>14. Tipo de Viagem</label>
         <select id="tipo_viagem" name="tipo_viagem" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
-          <option value="">Selecione...</option>
+          <option value="">Selecione...</option>sss
           <option value="no_estado"   {{ 'selected' if p and p.tipo_viagem=='no_estado' }}>Dentro do Estado</option>
           <option value="fora_estado" {{ 'selected' if p and p.tipo_viagem=='fora_estado' }}>Fora do Estado</option>
         </select>
@@ -269,7 +269,7 @@
 <div class="btn-row no-print" style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
   <a href="{{ url_for('processos.listar') }}" class="btn btn-secondary">Cancelar</a>
   <button type="submit" name="acao" value="rascunho" class="btn btn-secondary">💾 Salvar Rascunho</button>
-  <button type="submit" name="acao" value="submeter" class="btn btn-primary">📤 Salvar e Submeter para Aprovação</button>
+  <button type="submit" name="acao" value="submeter" class="btn btn-primary">📤 Salvar e Submeter para Análise
 </div>
 {% else %}
 <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end">
@@ -290,13 +290,13 @@ input[readonly],input.ro{background:#f0f2f5;color:#555}
 <script>
 const VALORES = {
   "Prefeito":               {no_estado:618.96, fora_estado:990.32},
-  "Vice-Prefeito":          {no_estado:495.17, fora_estado:742.74},
+  "Vice-Prefeito":          {no_estado:495.17, fora_estado:990.32},
   "Secretário":             {no_estado:495.17, fora_estado:742.74},
   "Controlador Geral":      {no_estado:495.17, fora_estado:742.74},
   "Procurador Geral":       {no_estado:495.17, fora_estado:742.74},
   "Chefe de gabinete":      {no_estado:495.17, fora_estado:742.74},
-  "Demais servidores":      {no_estado:371.38, fora_estado:200.00},
-  "Colaboradores eventuais":{no_estado:105.25, fora_estado: 80.00}
+  "Demais servidores":      {no_estado:371.38, fora_estado:618,96.},
+  "Colaboradores eventuais":{no_estado:105.25, fora_estado: 175,42}
 };
 
 function fmtBRL(v){ return 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
