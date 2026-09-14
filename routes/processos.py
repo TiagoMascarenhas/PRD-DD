@@ -212,6 +212,7 @@ table.assin td{{width:50%;padding:0 10px;text-align:center;vertical-align:top;fo
   <td><div class="f"><label>Unidade Orçamentária</label><span>{p.un_orc or '—'}</span></div></td>
   <td><div class="f"><label>Projeto / Atividade</label><span>{p.proj_atv or '—'}</span></div></td>
   <td><div class="f"><label>Elemento de Despesa</label><span>{p.elem_desp or '—'}</span></div></td>
+  <td><div class="f"><label>Fonte de Recurso</label><span>{p.fonte_recurso or '—'}</span></div></td>
 </tr></table>
 <table class="assin"><tr>
   <td>Assinatura do Beneficiário<br><br>Nome: ______________________________</td>
@@ -252,7 +253,7 @@ table.assin td{{width:50%;padding:0 10px;text-align:center;vertical-align:top;fo
 
 <div class="section"><div class="sh">7. Observações</div><div class="sb">
 <div class="f" style="margin-bottom:5px"><label>Obs.</label><span style="white-space:pre-wrap">{p.a2_obs or '—'}</span></div>
-<div class="decl"><strong>Certidão de Conformidade:</strong> Certifico, para estritos fins de análise e validação técnica junto ao Órgão de Controle Interno do Município, a regular execução dos trabalhos, encontrando-se em conformidade com o Decreto Municipal nº 1.313/2013. </div>
+<div class="decl"><strong>Certidão de Conformidade:</strong> Certifico, para estritos fins de análise e validação técnica junto ao Órgão de Controle Interno do Município, a regular execução dos trabalhos, encontrando-se em conformidade com o Decreto Municipal nº 014/09.</div>
 <div class="decl" style="margin-top:4px"><strong>Declaração de Responsabilidade:</strong> Declaro que assumo inteira responsabilidade civil, administrativa e penal pela veracidade das informações apresentadas.</div>
 <table class="assin"><tr>
   <td>Apresentado pelo Beneficiário<br><br>Data: ____/____/_____</td>

@@ -97,6 +97,7 @@ class Processo(db.Model):
     un_orc       = db.Column(db.String(30))
     proj_atv     = db.Column(db.String(30))
     elem_desp    = db.Column(db.String(30))
+    fonte_recurso = db.Column(db.String(30))
 
     # Prestação de contas (Anexo II)
     d_alim       = db.Column(db.Float, default=0)

@@ -133,8 +133,34 @@
   <div class="card-header">3. Justificativa</div>
   <div class="card-body">
     <div style="margin-bottom:8px">
-      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">16. Fundamentação Legal</label>
-      <textarea name="fund_legal" rows="3" style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;resize:vertical" {{ 'readonly' if readonly }}>{{ p.fund_legal if p else 'Art. 1º Os servidores públicos civis e os agentes políticos da administração pública do Poder Executivo Municipal que, em caráter eventual ou transitório, e no interesse do serviço, se deslocarem para outro município, farão jus, além do transporte, à percepção de diárias para atender às despesas com locomoção, alimentação e hospedagem.' }}</textarea>
+      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:6px">16. Fundamentação Legal — selecione os artigos aplicáveis</label>
+
+      {% set artigos = [
+        ('art1',  'Art. 1º — Servidores e agentes políticos que se deslocarem para outro município farão jus a diárias para despesas com locomoção, alimentação e hospedagem.'),
+        ('art2p', 'Art. 2º §único — Quando designados conjuntamente dois ou mais titulares de cargos de diferentes níveis, conceder-se-á a todos diárias iguais ao grau mais alto.'),
+        ('art4p1','Art. 4º §1º — Deslocamento inferior a 24h: concedido 50% do valor da diária integral.'),
+        ('art4p2','Art. 4º §2º — Deslocamento inferior a 24h com despesa de hospedagem comprovada: faz jus ao valor integral.'),
+        ('art5',  'Art. 5º — Servidor com hospedagem ou alimentação custeada por instituição governamental ou não governamental: 50% do valor das diárias.'),
+        ('art13', 'Art. 13 — Pessoas sem vínculo convidadas pelo Chefe do Executivo para delegações oficiais ou eventos de interesse do município: colaboradores eventuais com direito a diárias nos termos desta Lei.'),
+      ] %}
+
+      <div id="artigos-checks" style="border:1px solid #ddd;border-radius:4px;padding:8px;background:#fafafa;margin-bottom:6px">
+        {% for id, texto in artigos %}
+        {% set marcado = p and p.fund_legal and texto[:30] in p.fund_legal %}
+        <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;cursor:pointer;font-size:12px;color:#333;line-height:1.4">
+          <input type="checkbox" class="art-check" data-texto="{{ texto }}"
+                 style="margin-top:2px;flex-shrink:0"
+                 {{ 'checked' if marcado }}
+                 {{ 'disabled' if readonly }}>
+          <span>{{ texto }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">Fundamentação selecionada (editável)</label>
+      <textarea id="fund-legal-textarea" name="fund_legal" rows="3"
+                style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:12px;resize:vertical;color:#444"
+                {{ 'readonly' if readonly }}>{{ p.fund_legal if p and p.fund_legal else '' }}</textarea>
     </div>
     <div>
       <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">17. Descrição da Viagem &amp; Tarefas</label>
@@ -142,6 +168,30 @@
     </div>
   </div>
 </div>
+
+<script>
+(function(){
+  function reconstruir(){
+    var checks = document.querySelectorAll('.art-check:checked');
+    var textos = [];
+    checks.forEach(function(c){ textos.push(c.dataset.texto); });
+    document.getElementById('fund-legal-textarea').value = textos.join('\n');
+  }
+  document.querySelectorAll('.art-check').forEach(function(c){
+    c.addEventListener('change', reconstruir);
+  });
+  // Na edição, marca os checks cujo texto já está no textarea
+  (function marcarExistentes(){
+    var ta = document.getElementById('fund-legal-textarea');
+    if(!ta || !ta.value) return;
+    document.querySelectorAll('.art-check').forEach(function(c){
+      if(ta.value.indexOf(c.dataset.texto.substring(0,30)) !== -1){
+        c.checked = true;
+      }
+    });
+  })();
+})();
+</script>
 
 <div class="card">
   <div class="card-header">4. Base de Cálculo das Diárias</div>
@@ -204,13 +254,15 @@
       <div class="field"><label>23. Conta Corrente</label>
         <input type="text" name="conta" value="{{ p.conta or '' if p else '' }}" placeholder="00000000-0" {{ 'readonly' if readonly }}></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
       <div class="field"><label>24. Unidade Orçamentária</label>
         <input type="text" name="un_orc" value="{{ p.un_orc or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
       <div class="field"><label>25. Projeto / Atividade</label>
         <input type="text" name="proj_atv" value="{{ p.proj_atv or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
       <div class="field"><label>26. Elemento de Despesa / Sub</label>
         <input type="text" name="elem_desp" value="{{ p.elem_desp or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+      <div class="field"><label>27. Fonte de Recurso</label>
+        <input type="text" name="fonte_recurso" value="{{ p.fonte_recurso or '' if p else '' }}" placeholder="Ex.: 001, 015..." {{ 'readonly' if readonly }}></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px">
       <div style="border-top:1px solid #aaa;padding-top:6px;text-align:center;font-size:11px;color:#555">
