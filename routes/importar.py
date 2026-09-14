@@ -267,7 +267,7 @@ def revisar():
         for campo in list(CAMPOS_OBRIGATORIOS.keys()) + list(CAMPOS_RECOMENDADOS.keys()) + [
             'data_emissao','status_form','rg','fund_legal','descricao',
             'horas_viagem','desl_24h','hosp_outra','alim_outra',
-            'r_classe','r_tipo','un_orc','proj_atv','elem_desp','conta','agencia','banco',
+            'r_classe','r_tipo','un_orc','proj_atv','elem_desp','fonte_recurso','conta','agencia','banco',
         ]:
             key = prefix + campo
             if key in request.form:

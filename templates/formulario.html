@@ -43,12 +43,10 @@
       <div class="field"><label>2. Matrícula</label>
         <input type="text" name="matricula" value="{{ p.matricula or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
-      <div class="field"><label>3. CPF</label>
-        <input type="text" name="cpf" value="{{ p.cpf or '' if p else '' }}" placeholder="000.000.000-00" {{ 'readonly' if readonly }}></div>
-      <div class="field"><label>4. RG</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="field"><label>3. RG</label>
         <input type="text" name="rg" value="{{ p.rg or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
-      <div class="field"><label>5. Tipo de Beneficiário</label>
+      <div class="field"><label>4. Tipo de Beneficiário</label>
         <select name="tipo_benef" id="tipo_benef" onchange="calcDiaria()" {{ 'disabled' if readonly }}>
           <option value="">Selecione...</option>
           {% for v,l in [
@@ -72,11 +70,24 @@
       <div class="field"><label>7. Órgão / Secretaria</label>
         <select name="orgao" {{ 'disabled' if readonly }}>
           <option value="">Selecione...</option>
-          {% for o in ['Gabinete do Prefeito','Gabinete do Vice-Prefeito','Procuradoria Geral do Município',
-            'Controladoria Geral do Município','Ouvidoria do Prefeito','Sec. Municipal de Administração',
-            'Sec. Municipal da Fazenda, Planejamento e Finanças','Sec. Municipal de Desenvolvimento Social',
-            'Sec. Municipal de Infra-Estrutura e Serviços Públicos',
-            'Sec. Municipal de Planejamento Urbano e Meio Ambiente'] %}
+          {% for o in [
+            '02 - GABINETE DO PREFEITO - GAPRE',
+            '03 - PROCURADORIA JURÍDICA - PROJUR',
+            '04 - SECRETARIA MUNICIPAL DE GOVERNO E PLANEJAMENTO',
+            '05 - SECRETARIA MUNIC. DE ADMINISTRAÇÃO E TRANSPORTE – SEMAT',
+            '06 - SECRETARIA MUNICIPAL DA FAZENDA – SEFAZ',
+            '07 - SECRETARIA MUNICIPAL DE OBRAS E SERVIÇOS PÚBLICOS – SEOSP',
+            '08 - SECRETARIA MUNICIPAL DE EDUCAÇÃO - SEDUC',
+            '09 - SECRETARIA MUNICIPAL DE SAÚDE - SESAU',
+            '10 - SECRETARIA MUNIC. DE DESENV. E PROTEÇÃO SOCIAL - SEDES',
+            '11 - CONTROLADORIA GERAL DO MUNICÍPIO - CGM',
+            '12 - SECRETARIA MUNICIPAL DE DESENVOLVIMENTO ECONÔMICO, TURISMO E AGRICULTURA – SEDETA',
+            '14 - SECRETARIA MUNICIPAL DE MEIO AMBIENTE - SEMAM',
+            '15 - SECRETARIA MUNIC. DE HABITAÇÃO E REGULARIZAÇÃO FUNDIÁRIA - SEHAR',
+            '16 - SECRETARIA MUNICIPAL DE ESPORTE E LAZER – SEMEL',
+            '17 - OUVIDORIA GERAL DO MUNICÍPIO – OGM',
+            '18 - SECRETARIA MUNICIPAL DE CULTURA – SECULT'
+          ] %}
           <option {{ 'selected' if p and p.orgao == o }}>{{ o }}</option>
           {% endfor %}
         </select>
@@ -186,26 +197,30 @@
   <div class="card-body">
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
       <div class="field"><label>21. Banco</label>
-        <select name="banco" {{ 'disabled' if readonly }}>
-          <option value="">Selecione...</option>
-          {% for b in ['Banco do Brasil','Caixa Econômica Federal','Banco Bradesco','Banco Itaú','Santander',
-            'Banco Sicredi','Banco Sicoob','Banco Safra','Nubank','Banco Inter','C6 Bank','Banco do Nordeste (BNB)'] %}
-          <option {{ 'selected' if p and p.banco == b }}>{{ b }}</option>
-          {% endfor %}
-        </select>
+        <input type="text" name="banco" value="{{ p.banco or '' if p else '' }}" placeholder="Nome do banco" {{ 'readonly' if readonly }}>
       </div>
       <div class="field"><label>22. Agência</label>
         <input type="text" name="agencia" value="{{ p.agencia or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
       <div class="field"><label>23. Conta Corrente</label>
         <input type="text" name="conta" value="{{ p.conta or '' if p else '' }}" placeholder="00000000-0" {{ 'readonly' if readonly }}></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
       <div class="field"><label>24. Unidade Orçamentária</label>
         <input type="text" name="un_orc" value="{{ p.un_orc or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
       <div class="field"><label>25. Projeto / Atividade</label>
         <input type="text" name="proj_atv" value="{{ p.proj_atv or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
       <div class="field"><label>26. Elemento de Despesa / Sub</label>
         <input type="text" name="elem_desp" value="{{ p.elem_desp or '' if p else '' }}" {{ 'readonly' if readonly }}></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px">
+      <div style="border-top:1px solid #aaa;padding-top:6px;text-align:center;font-size:11px;color:#555">
+        Assinatura do Beneficiário<br>
+        <span style="font-size:10px;color:#888">Nome: ______________________________</span>
+      </div>
+      <div style="border-top:1px solid #aaa;padding-top:6px;text-align:center;font-size:11px;color:#555">
+        Assinatura do Ordenador de Despesa<br>
+        <span style="font-size:10px;color:#888">Cargo: _____________________________</span>
+      </div>
     </div>
   </div>
 </div>
