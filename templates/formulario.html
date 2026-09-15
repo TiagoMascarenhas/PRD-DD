@@ -144,51 +144,55 @@
         ('art13', 'Art. 13. As pessoas sem vínculo com a Administração Pública convidadas pelo Chefe do Poder Executivo para integrarem delegações oficiais ou que viajarem para participar de eventos do interesse do município serão consideradas colaboradores eventuais e farão jus a diárias nos termos desta Lei.'),
       ] %}
 
-      <div id="artigos-checks" style="border:1px solid #ddd;border-radius:4px;padding:8px;background:#fafafa;margin-bottom:6px">
-        {% for id, texto in artigos %}
-        {% set marcado = p and p.fund_legal and texto[:30] in p.fund_legal %}
-        <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;cursor:pointer;font-size:12px;color:#333;line-height:1.4">
-          <input type="checkbox" class="art-check" data-texto="{{ texto }}"
-                 style="margin-top:2px;flex-shrink:0"
-                 {{ 'checked' if marcado }}
-                 {{ 'disabled' if readonly }}>
-          <span>{{ texto }}</span>
-        </label>
-        {% endfor %}
-      </div>
+<div id="artigos-checks" style="border:1px solid #ddd;border-radius:4px;padding:8px;background:#fafafa;margin-bottom:6px">
+  {% for id, texto in artigos %}
+  {% set marcado = p and p.fund_legal and texto[:30] in p.fund_legal %}
 
-      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">Fundamentação selecionada (editável)</label>
-      <textarea id="fund-legal-textarea" name="fund_legal" rows="3"
-          style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:12px;resize:vertical;color:#444;background:#f5f5f5"
-          readonly>
-    <div>
-      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">17. Descrição da Viagem &amp; Tarefas</label>
-      <textarea name="descricao" rows="4" style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;resize:vertical" placeholder="Descreva as atividades, reuniões ou agenda institucional..." {{ 'readonly' if readonly }}>{{ p.descricao or '' if p else '' }}</textarea>
-    </div>
-  </div>
+  <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;cursor:pointer;font-size:12px;color:#333;line-height:1.4">
+    <input type="checkbox"
+           class="art-check"
+           data-texto="{{ texto }}"
+           style="margin-top:2px;flex-shrink:0"
+           {{ 'checked' if marcado }}
+           {{ 'disabled' if readonly }}>
+
+    <span>{{ texto }}</span>
+  </label>
+
+  {% endfor %}
 </div>
+
+<label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">
+  Fundamentação selecionada
+</label>
+
+<textarea
+    id="fund-legal-textarea"
+    name="fund_legal"
+    rows="3"
+    readonly
+    style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:12px;resize:vertical;color:#444;background:#f5f5f5"
+>{{ p.fund_legal or '' if p else '' }}</textarea>
 
 <script>
 (function(){
+
   function reconstruir(){
     var checks = document.querySelectorAll('.art-check:checked');
     var textos = [];
-    checks.forEach(function(c){ textos.push(c.dataset.texto); });
-    document.getElementById('fund-legal-textarea').value = textos.join('\n');
+
+    checks.forEach(function(c){
+      textos.push(c.dataset.texto);
+    });
+
+    document.getElementById('fund-legal-textarea').value =
+      textos.join('\n');
   }
+
   document.querySelectorAll('.art-check').forEach(function(c){
     c.addEventListener('change', reconstruir);
   });
-  // Na edição, marca os checks cujo texto já está no textarea
-  (function marcarExistentes(){
-    var ta = document.getElementById('fund-legal-textarea');
-    if(!ta || !ta.value) return;
-    document.querySelectorAll('.art-check').forEach(function(c){
-      if(ta.value.indexOf(c.dataset.texto.substring(0,30)) !== -1){
-        c.checked = true;
-      }
-    });
-  })();
+
 })();
 </script>
 
@@ -361,8 +365,8 @@ const VALORES = {
   "Controlador Geral":      {no_estado:495.17, fora_estado:742.74},
   "Procurador Geral":       {no_estado:495.17, fora_estado:742.74},
   "Chefe de gabinete":      {no_estado:495.17, fora_estado:742.74},
-  "Demais servidores":      {no_estado:371.38, fora_estado:618,96.},
-  "Colaboradores eventuais":{no_estado:105.25, fora_estado: 175,42}
+  "Demais servidores":      {no_estado:371.38, fora_estado:618.96},
+  "Colaboradores eventuais":{no_estado:105.25, fora_estado:175.42}
 };
 
 function fmtBRL(v){ return 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
