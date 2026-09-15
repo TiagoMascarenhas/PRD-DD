@@ -74,7 +74,7 @@ def editar(pid):
     if current_user.perfil == 'preenchedor':
         if p.usuario_id != current_user.id:
             abort(403)
-        if p.status not in ('rascunho',):
+        if p.status not in ('rascunho', 'submetido'):
             flash('Não é possível editar um processo já submetido.', 'erro')
             return redirect(url_for('processos.listar'))
 
