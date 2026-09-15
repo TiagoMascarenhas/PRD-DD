@@ -212,7 +212,9 @@ table.assin td{{width:50%;padding:0 10px;text-align:center;vertical-align:top;fo
   <td><div class="f"><label>Unidade Orçamentária</label><span>{p.un_orc or '—'}</span></div></td>
   <td><div class="f"><label>Projeto / Atividade</label><span>{p.proj_atv or '—'}</span></div></td>
   <td><div class="f"><label>Elemento de Despesa</label><span>{p.elem_desp or '—'}</span></div></td>
-  <td><div class="f"><label>Fonte de Recurso</label><span>{p.fonte_recurso or '—'}</span></div></td>
+</tr><tr>
+  <td colspan="2"><div class="f"><label>Fonte de Recurso</label><span>{p.fonte_recurso or '—'}</span></div></td>
+  <td></td>
 </tr></table>
 <table class="assin"><tr>
   <td>Assinatura do Beneficiário<br><br>Nome: ______________________________</td>
