@@ -9,7 +9,7 @@ CAMPOS = [
     'data_emissao','status_form','nome','matricula','cpf','rg','tipo_benef','cargo','orgao',
     'origem','destino','dt_saida','hr_saida','dt_chegada','hr_chegada','tipo_viagem','horas_viagem',
     'fund_legal','descricao','desl_24h','hosp_outra','alim_outra',
-    'r_classe','r_tipo','banco','agencia','conta','un_orc','proj_atv','elem_desp','a2_obs',
+    'r_classe','r_tipo','banco','agencia','conta','un_orc','proj_atv','elem_desp','fonte_recurso','a2_obs',
 ]
 CAMPOS_FLOAT  = ['r_valor','total_diaria','d_alim','d_transp','d_taxa','d_reparos','d_outros']
 CAMPOS_INT    = ['r_qtd_int','r_qtd_meio']
