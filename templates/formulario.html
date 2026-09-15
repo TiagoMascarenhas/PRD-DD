@@ -148,7 +148,7 @@
         {% for id, texto in artigos %}
         {% set marcado = p and p.fund_legal and texto[:30] in p.fund_legal %}
         <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;cursor:pointer;font-size:12px;color:#333;line-height:1.4">
-          <input type="checkbox" name="fund_legal" class="art-check" value="{{ texto }}"
+          <input type="checkbox" class="art-check" data-texto="{{ texto }}"
                  style="margin-top:2px;flex-shrink:0"
                  {{ 'checked' if marcado }}
                  {{ 'disabled' if readonly }}>
@@ -156,7 +156,11 @@
         </label>
         {% endfor %}
       </div>
-    </div>
+
+      <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">Fundamentação selecionada (editável)</label>
+      <textarea id="fund-legal-textarea" name="fund_legal" rows="3"
+          style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:12px;resize:vertical;color:#444;background:#f5f5f5"
+          readonly>
     <div>
       <label style="font-size:11px;font-weight:bold;color:#555;display:block;margin-bottom:3px">17. Descrição da Viagem &amp; Tarefas</label>
       <textarea name="descricao" rows="4" style="width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px;font-size:13px;resize:vertical" placeholder="Descreva as atividades, reuniões ou agenda institucional..." {{ 'readonly' if readonly }}>{{ p.descricao or '' if p else '' }}</textarea>
