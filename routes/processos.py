@@ -129,7 +129,7 @@ h1{{font-size:13px;color:#1a3f7a;text-align:center;margin-bottom:2px}}
 .sb{{padding:6px 8px}}
 table.layout{{width:100%;border-collapse:collapse}}
 table.layout td{{padding:2px 4px;vertical-align:top}}
-.f label{{font-size:9px;color:#666;font-weight:bold;display:block;margin-bottom:1px}}
+.f label{{font-size:9px;color:#666;font-weight:bold;display:block;margin-bottom:1px;white-space:nowrap;overflow:hidden}}
 .f span{{display:block;padding:2px 5px;border:1px solid #ddd;background:#f9f9f9;min-height:18px;font-size:11px}}
 .total{{background:#1a3f7a;color:#fff;padding:5px 10px;margin-top:5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .total strong{{font-size:14px;float:right}}
@@ -205,16 +205,16 @@ table.assin td{{width:50%;padding:0 10px;text-align:center;vertical-align:top;fo
 
 <div class="section"><div class="sh">5. Pagamento</div><div class="sb">
 <table class="layout"><tr>
-  <td width="40%"><div class="f"><label>Banco</label><span>{p.banco or '—'}</span></div></td>
+  <td width="50%"><div class="f"><label>Banco</label><span>{p.banco or '—'}</span></div></td>
   <td width="25%"><div class="f"><label>Agência</label><span>{p.agencia or '—'}</span></div></td>
-  <td width="35%"><div class="f"><label>Conta Corrente</label><span>{p.conta or '—'}</span></div></td>
+  <td width="25%"><div class="f"><label>Conta Corrente</label><span>{p.conta or '—'}</span></div></td>
 </tr><tr>
-  <td><div class="f"><label>Unidade Orçamentária</label><span>{p.un_orc or '—'}</span></div></td>
-  <td><div class="f"><label>Projeto / Atividade</label><span>{p.proj_atv or '—'}</span></div></td>
-  <td><div class="f"><label>Elemento de Despesa</label><span>{p.elem_desp or '—'}</span></div></td>
+  <td width="50%"><div class="f"><label>Unidade Orçamentária</label><span>{p.un_orc or '—'}</span></div></td>
+  <td width="25%"><div class="f"><label>Projeto / Atividade</label><span>{p.proj_atv or '—'}</span></div></td>
+  <td width="25%"><div class="f"><label>Elemento de Despesa</label><span>{p.elem_desp or '—'}</span></div></td>
 </tr><tr>
-  <td colspan="2"><div class="f"><label>Fonte de Recurso</label><span>{p.fonte_recurso or '—'}</span></div></td>
-  <td></td>
+  <td width="50%"><div class="f"><label>Fonte de Recurso</label><span>{p.fonte_recurso or '—'}</span></div></td>
+  <td width="50%" colspan="2"></td>
 </tr></table>
 <table class="assin"><tr>
   <td>Assinatura do Beneficiário<br><br>Nome: ______________________________</td>
