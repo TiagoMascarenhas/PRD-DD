@@ -186,7 +186,7 @@ table.assin td{{width:50%;padding:0 10px;text-align:center;vertical-align:top;fo
 </div></div>
 
 <div class="section"><div class="sh">3. Justificativa</div><div class="sb">
-<div class="f" style="margin-bottom:4px"><label>Fundamentação Legal</label><span style="white-space:pre-wrap">{p.fund_legal or '—'}</span></div>
+<div class="f" style="margin-bottom:4px"><label>Fundamentação Legal</label><span>{"<br/>".join((p.fund_legal or '—').split(chr(10)))}</span></div>
 <div class="f"><label>Descrição da Viagem</label><span style="white-space:pre-wrap">{p.descricao or '—'}</span></div>
 </div></div>
 
@@ -205,9 +205,9 @@ table.assin td{{width:50%;padding:0 10px;text-align:center;vertical-align:top;fo
 
 <div class="section"><div class="sh">5. Pagamento</div><div class="sb">
 <table class="layout"><tr>
-  <td width="34%"><div class="f"><label>Banco</label><span>{p.banco or '—'}</span></div></td>
-  <td width="33%"><div class="f"><label>Agência</label><span>{p.agencia or '—'}</span></div></td>
-  <td width="33%"><div class="f"><label>Conta Corrente</label><span>{p.conta or '—'}</span></div></td>
+  <td width="40%"><div class="f"><label>Banco</label><span>{p.banco or '—'}</span></div></td>
+  <td width="25%"><div class="f"><label>Agência</label><span>{p.agencia or '—'}</span></div></td>
+  <td width="35%"><div class="f"><label>Conta Corrente</label><span>{p.conta or '—'}</span></div></td>
 </tr><tr>
   <td><div class="f"><label>Unidade Orçamentária</label><span>{p.un_orc or '—'}</span></div></td>
   <td><div class="f"><label>Projeto / Atividade</label><span>{p.proj_atv or '—'}</span></div></td>
